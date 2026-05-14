@@ -4,21 +4,42 @@
 
 Deploy a full-stack blog application frontend, backend, and database on a cloud platform. Configure the server environment so that users can create, view, and manage blog posts through a web interface.
 
-## Repository
+---
+
+# Repository
 
 ```text
 https://github.com/4SNA/Blog-app-LP-2
 ```
 
-## Technologies Used
+---
+
+# Technologies Used
 
 - AWS EC2 Ubuntu Instance
-- React.js Frontend
+- React.js + Vite Frontend
 - Node.js + Express.js Backend
 - MongoDB Atlas Database
 - Git
 - npm
 - PM2 Process Manager
+
+---
+
+# Architecture
+
+```text
+User Browser
+     |
+     v
+AWS EC2 Instance
+     |
+     |-- React + Vite Frontend (Port 5173)
+     |-- Express Backend API (Port 5000)
+     |
+     v
+MongoDB Atlas Database
+```
 
 ---
 
@@ -29,23 +50,26 @@ https://github.com/4SNA/Blog-app-LP-2
 3. Click Launch Instance.
 4. Select Ubuntu.
 5. Select t2.micro.
-6. Create or select key pair.
+6. Create/select key pair.
 7. Download `.pem` file.
 8. Configure Security Group.
 
-## Security Group Inbound Rules
+---
+
+# Security Group Inbound Rules
 
 | Type | Port | Source |
 |---|---|---|
 | SSH | 22 | My IP |
 | HTTP | 80 | 0.0.0.0/0 |
 | Custom TCP | 5000 | 0.0.0.0/0 |
+| Custom TCP | 5173 | 0.0.0.0/0 |
 
 ---
 
 # Step 2 - Connect to EC2
 
-Open terminal or PowerShell in folder where `.pem` file is present.
+Open terminal or PowerShell where `.pem` file exists.
 
 ```bash
 chmod 400 your-key.pem
@@ -72,7 +96,9 @@ sudo apt upgrade -y
 
 ---
 
-# Step 4 - Install Node.js, npm, Git and PM2
+# Step 4 - Install Required Software
+
+Install Node.js, npm and Git:
 
 ```bash
 sudo apt install nodejs npm git -y
@@ -92,7 +118,7 @@ Install PM2:
 sudo npm install -g pm2
 ```
 
-Verify PM2:
+Verify:
 
 ```bash
 pm2 --version
@@ -102,18 +128,22 @@ pm2 --version
 
 # Step 5 - MongoDB Atlas Setup
 
-Use MongoDB Atlas instead of installing MongoDB locally.
+Use MongoDB Atlas cloud database instead of local MongoDB.
 
-## Atlas Details
+---
+
+# MongoDB Atlas Details
 
 ```text
 Username: lp2_user
 Password: lp2password123
 Database Name: blogdb
-Cluster: Cluster0
+Cluster Name: Cluster0
 ```
 
-## Atlas Steps
+---
+
+# Atlas Setup Steps
 
 1. Open MongoDB Atlas.
 2. Create free M0 cluster.
@@ -125,15 +155,24 @@ Cluster: Cluster0
    ```text
    lp2password123
    ```
-5. Go to Network Access.
-6. Click Add IP Address.
-7. Click Allow Access From Anywhere.
+5. Go to:
+   ```text
+   Network Access
+   ```
+6. Click:
+   ```text
+   Add IP Address
+   ```
+7. Click:
+   ```text
+   Allow Access From Anywhere
+   ```
 8. Confirm:
    ```text
    0.0.0.0/0
    ```
 
-MongoDB Atlas will automatically create `blogdb` after first data insertion.
+MongoDB Atlas automatically creates database `blogdb` after first insertion.
 
 ---
 
@@ -153,7 +192,7 @@ Check files:
 ls
 ```
 
-Expected folders:
+Expected:
 
 ```text
 backend
@@ -165,17 +204,19 @@ README.md
 
 # Step 7 - Backend Setup
 
+Go to backend:
+
 ```bash
 cd backend
 ```
 
-Install backend dependencies:
+Install dependencies:
 
 ```bash
 npm install
 ```
 
-Create `.env` file:
+Create `.env`:
 
 ```bash
 nano .env
@@ -205,6 +246,8 @@ cat .env
 
 # Step 8 - Frontend Setup
 
+Go to frontend:
+
 ```bash
 cd ../frontend
 ```
@@ -215,27 +258,110 @@ Install frontend dependencies:
 npm install
 ```
 
-Build frontend:
+---
+
+# Step 8.1 - Fix localhost API Issue
+
+Search localhost references:
 
 ```bash
-npm run build
+grep -R "localhost" .
+```
+
+If you find:
+
+```text
+http://localhost:5000
+```
+
+replace with your EC2 public IP.
+
+Example:
+
+```text
+http://15.206.xxx.xxx:5000
+```
+
+Quick replace:
+
+```bash
+grep -rl "localhost:5000" . | xargs sed -i 's|http://localhost:5000|http://15.206.xxx.xxx:5000|g'
+```
+
+---
+
+# Step 8.2 - Configure Vite Public Hosting
+
+Open Vite config:
+
+```bash
+nano vite.config.js
+```
+
+OR
+
+```bash
+nano vite.config.ts
+```
+
+Add:
+
+```js
+server: {
+  host: "0.0.0.0",
+  port: 5173
+}
+```
+
+Example:
+
+```js
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    host: "0.0.0.0",
+    port: 5173
+  }
+})
+```
+
+---
+
+# Step 8.3 - Run Frontend
+
+```bash
+npm run dev -- --host 0.0.0.0
+```
+
+Expected:
+
+```text
+Local:   http://localhost:5173
+Network: http://172.xxx.xxx.xxx:5173
 ```
 
 ---
 
 # Step 9 - Run Backend Using PM2
 
+Open new terminal or reconnect SSH.
+
+Go to backend:
+
 ```bash
-cd ../backend
+cd ~/Blog-app-LP-2/backend
 ```
 
-Check backend file:
+Check files:
 
 ```bash
 ls
 ```
 
-If `server.js` exists, run:
+If `server.js` exists:
 
 ```bash
 pm2 start server.js
@@ -261,22 +387,31 @@ pm2 list
 curl http://localhost:5000
 ```
 
-If HTML or JSON output appears, backend is running.
+If HTML or JSON appears:
+backend is working.
 
 ---
 
-# Step 11 - Access Application Publicly
+# Step 11 - Open Application Publicly
 
-Open browser:
+## Backend
 
 ```text
 http://YOUR_PUBLIC_IP:5000
 ```
 
+---
+
+## Frontend
+
+```text
+http://YOUR_PUBLIC_IP:5173
+```
+
 Example:
 
 ```text
-http://13.126.xxx.xxx:5000
+http://15.206.xxx.xxx:5173
 ```
 
 ---
@@ -286,45 +421,55 @@ http://13.126.xxx.xxx:5000
 1. Open MongoDB Atlas.
 2. Go to Database.
 3. Click Browse Collections.
-4. Create or insert one blog post from the application.
+4. Create one blog post.
 5. Database `blogdb` should appear.
-6. Collection should contain blog post documents.
+6. Collections/documents should be visible.
 
 ---
 
 # Useful Commands
 
-Check running apps:
+## Check PM2
 
 ```bash
 pm2 list
 ```
 
-View logs:
+---
+
+## View Logs
 
 ```bash
 pm2 logs
 ```
 
-Restart app:
+---
+
+## Restart Backend
 
 ```bash
 pm2 restart all
 ```
 
-Stop app:
+---
+
+## Stop Backend
 
 ```bash
 pm2 stop all
 ```
 
-Delete all PM2 processes:
+---
+
+## Delete PM2 Processes
 
 ```bash
 pm2 delete all
 ```
 
-Check port:
+---
+
+## Test Backend
 
 ```bash
 curl http://localhost:5000
@@ -334,6 +479,8 @@ curl http://localhost:5000
 
 # Common Errors and Fixes
 
+---
+
 ## 1. pm2 command not found
 
 ```bash
@@ -342,24 +489,31 @@ sudo npm install -g pm2
 
 ---
 
-## 2. Website not opening in browser
+## 2. Website not opening publicly
 
-Check AWS Security Group.
+Check Security Group.
 
-Required rule:
+Required:
+
+| Type | Port |
+|---|---|
+| Custom TCP | 5000 |
+| Custom TCP | 5173 |
+
+Source:
 
 ```text
-Custom TCP | 5000 | 0.0.0.0/0
+0.0.0.0/0
 ```
 
 ---
 
-## 3. MongoDB connection error
+## 3. MongoDB Atlas connection failed
 
-Check Atlas Network Access:
+Check:
 
 ```text
-0.0.0.0/0
+Network Access → 0.0.0.0/0
 ```
 
 Check `.env`:
@@ -368,7 +522,7 @@ Check `.env`:
 MONGO_URI=mongodb+srv://lp2_user:lp2password123@cluster0.tki1kaj.mongodb.net/blogdb?retryWrites=true&w=majority&appName=Cluster0
 ```
 
-Restart backend:
+Restart:
 
 ```bash
 pm2 restart all
@@ -377,9 +531,42 @@ pm2 logs
 
 ---
 
-## 4. EADDRINUSE port 5000 already in use
+## 4. Frontend works only on localhost
 
-This means backend is already running.
+Fix Vite config:
+
+```js
+server: {
+  host: "0.0.0.0",
+  port: 5173
+}
+```
+
+Run:
+
+```bash
+npm run dev -- --host 0.0.0.0
+```
+
+---
+
+## 5. localhost API issue
+
+Replace:
+
+```text
+http://localhost:5000
+```
+
+with:
+
+```text
+http://YOUR_PUBLIC_IP:5000
+```
+
+---
+
+## 6. EADDRINUSE port 5000 already in use
 
 Fix:
 
@@ -390,7 +577,7 @@ pm2 start server.js
 
 ---
 
-## 5. Cannot find module
+## 7. Cannot find module
 
 Run:
 
@@ -398,25 +585,25 @@ Run:
 npm install
 ```
 
-inside backend or frontend folder.
+inside frontend/backend.
 
 ---
 
-## 6. server.js not found
+## 8. server.js not found
 
-Check backend files:
+Check:
 
 ```bash
 ls
 ```
 
-If backend has `app.js`, run:
+If app.js exists:
 
 ```bash
 pm2 start app.js
 ```
 
-If backend has `index.js`, run:
+If index.js exists:
 
 ```bash
 pm2 start index.js
@@ -430,19 +617,9 @@ pm2 start index.js
 - View blog posts
 - Update blog posts
 - Delete blog posts
+- MongoDB Atlas integration
 - Cloud deployment
-- MongoDB Atlas database
-- Public access using EC2 public IP
-
----
-
-# Output
-
-The full-stack blog application is deployed successfully on AWS EC2 and is accessible publicly using:
-
-```text
-http://YOUR_PUBLIC_IP:5000
-```
+- Public access using EC2
 
 ---
 
@@ -450,30 +627,51 @@ http://YOUR_PUBLIC_IP:5000
 
 ## What is EC2?
 
-EC2 is Elastic Compute Cloud, a virtual machine service provided by AWS.
+AWS virtual machine service.
 
-## What is PM2?
-
-PM2 is a Node.js process manager used to keep backend applications running continuously.
+---
 
 ## What is MongoDB Atlas?
 
-MongoDB Atlas is a cloud-based MongoDB database service.
+Cloud-based MongoDB database service.
+
+---
+
+## What is PM2?
+
+Node.js process manager.
+
+---
+
+## Why ports 5000 and 5173?
+
+- 5000 → Backend API
+- 5173 → React + Vite frontend
+
+---
 
 ## What is Security Group?
 
-Security Group is a virtual firewall that controls inbound and outbound traffic for EC2.
+AWS firewall controlling traffic.
 
-## Why port 5000?
+---
 
-The Node.js backend application runs on port 5000.
+## Why `.env` file?
 
-## What is `.env` file?
+Stores secret/environment variables.
 
-`.env` file stores configuration variables like database URL, port number, and secret key.
+---
+
+# Output
+
+The Blog Application is successfully deployed and publicly accessible using:
+
+```text
+http://YOUR_PUBLIC_IP:5173
+```
 
 ---
 
 # Conclusion
 
-The Blog Application was successfully deployed on AWS EC2 using React frontend, Node.js/Express backend, and MongoDB Atlas database. The application supports CRUD operations for blog posts and is publicly accessible through the EC2 public IP.
+The full-stack Blog Application was successfully deployed on AWS EC2 Ubuntu using React + Vite frontend, Node.js/Express backend, and MongoDB Atlas database. The application supports CRUD operations and is publicly accessible through EC2 public IP.
