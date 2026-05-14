@@ -1,120 +1,58 @@
-# Full-Stack Blog Application Deployment on AWS EC2 (Ubuntu)
+# Assignment 9 - Online Blog Application Deployment
 
-This project demonstrates deployment of a Full-Stack Blog Application using:
+## Problem Statement
 
-- React.js (Frontend)
-- Node.js + Express.js (Backend)
-- MongoDB (Database)
-- AWS EC2 Ubuntu Instance
+Deploy a full-stack blog application frontend, backend, and database on a cloud platform. Configure the server environment so that users can create, view, and manage blog posts through a web interface.
 
-The application allows users to:
-- Create blog posts
-- View blog posts
-- Update blog posts
-- Delete blog posts
-
----
-
-# Problem Statement
-
-Deploy a full-stack blog application (frontend, backend, and database) on a cloud platform. Configure the server environment so that users can create, view, and manage blog posts through a web interface.
-
----
-
-# Architecture
-
-```text
-User → Browser → AWS EC2
-                    ├── React Frontend
-                    ├── Express Backend API
-                    └── MongoDB Database
-```
-
----
-
-# Requirements
-
-- AWS Account
-- Ubuntu EC2 Instance
-- `.pem` key file
-- Internet Connection
-- GitHub Repository
-
-Repository:
+## Repository
 
 ```text
 https://github.com/4SNA/Blog-app-LP-2
 ```
 
----
+## Technologies Used
 
-# Step 1 — Launch AWS EC2 Instance
-
-## Open AWS Console
-
-Go to:
-
-```text
-EC2 → Launch Instance
-```
+- AWS EC2 Ubuntu Instance
+- React.js Frontend
+- Node.js + Express.js Backend
+- MongoDB Atlas Database
+- Git
+- npm
+- PM2 Process Manager
 
 ---
 
-## Configure Instance
+# Step 1 - Create AWS EC2 Instance
 
-### AMI
-```text
-Ubuntu
-```
+1. Open AWS Console.
+2. Go to EC2.
+3. Click Launch Instance.
+4. Select Ubuntu.
+5. Select t2.micro.
+6. Create or select key pair.
+7. Download `.pem` file.
+8. Configure Security Group.
 
-### Instance Type
-```text
-t2.micro
-```
-
-### Key Pair
-Create/download:
-
-```text
-your-key.pem
-```
-
----
-
-# Configure Security Group
-
-Add these inbound rules:
+## Security Group Inbound Rules
 
 | Type | Port | Source |
-|------|------|---------|
+|---|---|---|
 | SSH | 22 | My IP |
 | HTTP | 80 | 0.0.0.0/0 |
 | Custom TCP | 5000 | 0.0.0.0/0 |
 
 ---
 
-# Step 2 — Connect to EC2
+# Step 2 - Connect to EC2
 
-Open PowerShell / Terminal.
-
-Go to folder containing `.pem` file.
-
-Example:
-
-```powershell
-cd C:\Users\hp\Downloads
-```
-
----
-
-## Connect Using SSH
+Open terminal or PowerShell in folder where `.pem` file is present.
 
 ```bash
 chmod 400 your-key.pem
 ```
 
 ```bash
-ssh -i your-key.pem ubuntu@<public-ip>
+ssh -i your-key.pem ubuntu@YOUR_PUBLIC_IP
 ```
 
 Example:
@@ -125,7 +63,7 @@ ssh -i blog.pem ubuntu@13.126.xxx.xxx
 
 ---
 
-# Step 3 — Update Ubuntu Packages
+# Step 3 - Update Ubuntu
 
 ```bash
 sudo apt update
@@ -134,18 +72,13 @@ sudo apt upgrade -y
 
 ---
 
-# Step 4 — Install Required Dependencies
-
-Install:
-- Node.js
-- npm
-- Git
+# Step 4 - Install Node.js, npm, Git and PM2
 
 ```bash
 sudo apt install nodejs npm git -y
 ```
 
-Verify installations:
+Verify:
 
 ```bash
 node -v
@@ -153,19 +86,13 @@ npm -v
 git --version
 ```
 
----
-
-# Step 5 — Install PM2
-
-PM2 is a Node.js process manager.
-
-Install globally:
+Install PM2:
 
 ```bash
 sudo npm install -g pm2
 ```
 
-Verify:
+Verify PM2:
 
 ```bash
 pm2 --version
@@ -173,13 +100,48 @@ pm2 --version
 
 ---
 
-# Step 6 — Clone GitHub Repository
+# Step 5 - MongoDB Atlas Setup
+
+Use MongoDB Atlas instead of installing MongoDB locally.
+
+## Atlas Details
+
+```text
+Username: lp2_user
+Password: lp2password123
+Database Name: blogdb
+Cluster: Cluster0
+```
+
+## Atlas Steps
+
+1. Open MongoDB Atlas.
+2. Create free M0 cluster.
+3. Create database user:
+   ```text
+   lp2_user
+   ```
+4. Set password:
+   ```text
+   lp2password123
+   ```
+5. Go to Network Access.
+6. Click Add IP Address.
+7. Click Allow Access From Anywhere.
+8. Confirm:
+   ```text
+   0.0.0.0/0
+   ```
+
+MongoDB Atlas will automatically create `blogdb` after first data insertion.
+
+---
+
+# Step 6 - Clone Repository
 
 ```bash
 git clone https://github.com/4SNA/Blog-app-LP-2.git
 ```
-
-Enter project folder:
 
 ```bash
 cd Blog-app-LP-2
@@ -201,9 +163,7 @@ README.md
 
 ---
 
-# Step 7 — Setup Backend
-
-Go to backend:
+# Step 7 - Backend Setup
 
 ```bash
 cd backend
@@ -215,11 +175,7 @@ Install backend dependencies:
 npm install
 ```
 
----
-
-# Create `.env` File
-
-Create environment file:
+Create `.env` file:
 
 ```bash
 nano .env
@@ -228,7 +184,7 @@ nano .env
 Paste:
 
 ```env
-MONGO_URI=mongodb://127.0.0.1:27017/blogdb
+MONGO_URI=mongodb+srv://lp2_user:lp2password123@cluster0.tki1kaj.mongodb.net/blogdb?retryWrites=true&w=majority&appName=Cluster0
 JWT_SECRET=sarthak123
 PORT=5000
 ```
@@ -239,82 +195,15 @@ Save:
 CTRL + X → Y → Enter
 ```
 
----
+Check `.env`:
 
-# Explanation of `.env`
-
-## MONGO_URI
-
-```env
-mongodb://127.0.0.1:27017/blogdb
-```
-
-- MongoDB running locally
-- Database name = `blogdb`
-
----
-
-## JWT_SECRET
-
-Used for:
-- login authentication
-- token generation
-
-Can be any random string.
-
----
-
-## PORT
-
-```env
-PORT=5000
-```
-
-Backend runs on:
-
-```text
-localhost:5000
+```bash
+cat .env
 ```
 
 ---
 
-# Step 8 — Install MongoDB (If Needed)
-
-Check MongoDB:
-
-```bash
-mongod --version
-```
-
-If not installed:
-
-```bash
-sudo apt install mongodb -y
-```
-
-Start MongoDB:
-
-```bash
-sudo systemctl start mongodb
-```
-
-Enable MongoDB:
-
-```bash
-sudo systemctl enable mongodb
-```
-
-Check MongoDB status:
-
-```bash
-sudo systemctl status mongodb
-```
-
----
-
-# Step 9 — Setup Frontend
-
-Go to frontend folder:
+# Step 8 - Frontend Setup
 
 ```bash
 cd ../frontend
@@ -332,19 +221,21 @@ Build frontend:
 npm run build
 ```
 
-This creates production build files.
-
 ---
 
-# Step 10 — Run Backend Application
-
-Go to backend:
+# Step 9 - Run Backend Using PM2
 
 ```bash
 cd ../backend
 ```
 
-Start backend:
+Check backend file:
+
+```bash
+ls
+```
+
+If `server.js` exists, run:
 
 ```bash
 pm2 start server.js
@@ -356,7 +247,7 @@ Save PM2 process:
 pm2 save
 ```
 
-Check running applications:
+Check status:
 
 ```bash
 pm2 list
@@ -364,28 +255,22 @@ pm2 list
 
 ---
 
-# Step 11 — Verify Application Locally
-
-Inside EC2:
+# Step 10 - Test Backend Locally
 
 ```bash
 curl http://localhost:5000
 ```
 
-If HTML output appears:
-
-```text
-Application is running correctly
-```
+If HTML or JSON output appears, backend is running.
 
 ---
 
-# Step 12 — Access Application Publicly
+# Step 11 - Access Application Publicly
 
 Open browser:
 
 ```text
-http://<public-ip>:5000
+http://YOUR_PUBLIC_IP:5000
 ```
 
 Example:
@@ -396,15 +281,60 @@ http://13.126.xxx.xxx:5000
 
 ---
 
-# Common Errors and Solutions
+# Step 12 - Verify MongoDB Atlas
+
+1. Open MongoDB Atlas.
+2. Go to Database.
+3. Click Browse Collections.
+4. Create or insert one blog post from the application.
+5. Database `blogdb` should appear.
+6. Collection should contain blog post documents.
 
 ---
 
-## Error 1 — `pm2: command not found`
+# Useful Commands
 
-### Solution
+Check running apps:
 
-Install PM2:
+```bash
+pm2 list
+```
+
+View logs:
+
+```bash
+pm2 logs
+```
+
+Restart app:
+
+```bash
+pm2 restart all
+```
+
+Stop app:
+
+```bash
+pm2 stop all
+```
+
+Delete all PM2 processes:
+
+```bash
+pm2 delete all
+```
+
+Check port:
+
+```bash
+curl http://localhost:5000
+```
+
+---
+
+# Common Errors and Fixes
+
+## 1. pm2 command not found
 
 ```bash
 sudo npm install -g pm2
@@ -412,31 +342,55 @@ sudo npm install -g pm2
 
 ---
 
-## Error 2 — `ERR_CONNECTION_TIMED_OUT`
+## 2. Website not opening in browser
 
-### Cause
+Check AWS Security Group.
 
-Port 5000 blocked.
+Required rule:
 
-### Solution
+```text
+Custom TCP | 5000 | 0.0.0.0/0
+```
 
-Open Security Group inbound rule:
+---
 
-| Type | Port |
-|------|------|
-| Custom TCP | 5000 |
+## 3. MongoDB connection error
 
-Source:
+Check Atlas Network Access:
 
 ```text
 0.0.0.0/0
 ```
 
+Check `.env`:
+
+```env
+MONGO_URI=mongodb+srv://lp2_user:lp2password123@cluster0.tki1kaj.mongodb.net/blogdb?retryWrites=true&w=majority&appName=Cluster0
+```
+
+Restart backend:
+
+```bash
+pm2 restart all
+pm2 logs
+```
+
 ---
 
-## Error 3 — `Cannot find module`
+## 4. EADDRINUSE port 5000 already in use
 
-### Solution
+This means backend is already running.
+
+Fix:
+
+```bash
+pm2 delete all
+pm2 start server.js
+```
+
+---
+
+## 5. Cannot find module
 
 Run:
 
@@ -444,37 +398,11 @@ Run:
 npm install
 ```
 
-inside:
-- backend
-- frontend
+inside backend or frontend folder.
 
 ---
 
-## Error 4 — `MongoDB connection failed`
-
-### Cause
-
-Wrong MongoDB URI or MongoDB service not running.
-
-### Solution
-
-Check:
-
-```bash
-sudo systemctl status mongodb
-```
-
-Start MongoDB:
-
-```bash
-sudo systemctl start mongodb
-```
-
----
-
-## Error 5 — `server.js not found`
-
-### Solution
+## 6. server.js not found
 
 Check backend files:
 
@@ -482,17 +410,13 @@ Check backend files:
 ls
 ```
 
-Maybe project uses:
-- app.js
-- index.js
-
-Run correct file:
+If backend has `app.js`, run:
 
 ```bash
 pm2 start app.js
 ```
 
-or
+If backend has `index.js`, run:
 
 ```bash
 pm2 start index.js
@@ -500,112 +424,25 @@ pm2 start index.js
 
 ---
 
-## Error 6 — `scp not working`
-
-### Cause
-
-`.pem` file or source file not found.
-
-### Solution
-
-Run SCP from local machine:
-
-```bash
-scp -i your-key.pem file.txt ubuntu@public-ip:/home/ubuntu/
-```
-
----
-
-# Useful Commands
-
-## View Files
-
-```bash
-ls
-```
-
----
-
-## View Hidden Files
-
-```bash
-ls -la
-```
-
----
-
-## Check Current Folder
-
-```bash
-pwd
-```
-
----
-
-## PM2 Logs
-
-```bash
-pm2 logs
-```
-
----
-
-## Restart Application
-
-```bash
-pm2 restart all
-```
-
----
-
-## Stop Application
-
-```bash
-pm2 stop all
-```
-
----
-
-## Delete PM2 Process
-
-```bash
-pm2 delete all
-```
-
----
-
-# Remote Updates
-
-## Update Backend
-
-```bash
-cd backend
-git pull
-pm2 restart all
-```
-
----
-
-## Update Frontend
-
-```bash
-cd frontend
-git pull
-npm run build
-pm2 restart all
-```
-
----
-
 # Features
 
-- Create Blog Posts
-- View Blog Posts
-- Update Blog Posts
-- Delete Blog Posts
-- Cloud Deployment
-- Public Accessibility
-- Remote Server Management
+- Create blog posts
+- View blog posts
+- Update blog posts
+- Delete blog posts
+- Cloud deployment
+- MongoDB Atlas database
+- Public access using EC2 public IP
+
+---
+
+# Output
+
+The full-stack blog application is deployed successfully on AWS EC2 and is accessible publicly using:
+
+```text
+http://YOUR_PUBLIC_IP:5000
+```
 
 ---
 
@@ -613,52 +450,30 @@ pm2 restart all
 
 ## What is EC2?
 
-Elastic Compute Cloud virtual machine service provided by AWS.
-
----
+EC2 is Elastic Compute Cloud, a virtual machine service provided by AWS.
 
 ## What is PM2?
 
-Node.js process manager used to run backend continuously.
+PM2 is a Node.js process manager used to keep backend applications running continuously.
 
----
+## What is MongoDB Atlas?
 
-## Why Port 5000?
-
-Node.js backend application runs on port 5000.
-
----
-
-## What is SSH?
-
-Secure Shell protocol used for remote Linux access.
-
----
+MongoDB Atlas is a cloud-based MongoDB database service.
 
 ## What is Security Group?
 
-Cloud firewall controlling network traffic.
+Security Group is a virtual firewall that controls inbound and outbound traffic for EC2.
 
----
+## Why port 5000?
 
-## Why `.env` file?
+The Node.js backend application runs on port 5000.
 
-Stores environment variables securely.
+## What is `.env` file?
 
----
-
-## What is MongoDB?
-
-NoSQL database used to store blog data.
-
----
-
-# Output
-
-The Full-Stack Blog Application is successfully deployed on AWS EC2 Ubuntu instance and is publicly accessible using the EC2 public IP address.
+`.env` file stores configuration variables like database URL, port number, and secret key.
 
 ---
 
 # Conclusion
 
-The Blog Application was successfully deployed on AWS EC2 cloud instance using React frontend, Node.js/Express backend, and MongoDB database. The application supports CRUD operations and can be accessed remotely through the internet.
+The Blog Application was successfully deployed on AWS EC2 using React frontend, Node.js/Express backend, and MongoDB Atlas database. The application supports CRUD operations for blog posts and is publicly accessible through the EC2 public IP.
